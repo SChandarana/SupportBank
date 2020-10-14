@@ -1,63 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Transactions;
+using System.Globalization;
+using System.IO;
+using CsvHelper;
 
 namespace SupportBank
 {
     class Program
     {
+        private static Dictionary<string,Account> _accounts;
+        
         static void Main(string[] args)
         {
-            
-        }
-    }
-
-    class Transaction
-    {
-        public Transaction(string date, string from, string to, string narrative, double amount)
-        {
-            Date = date;
-            From = from;
-            To = to;
-            Narrative = narrative;
-            Amount = amount;
-        }
-
-        public string Date { get;  }
-        public string From { get; }
-        public string To { get; }
-        public string Narrative { get; }
-        public double Amount { get; }
-    }
-
-    class Account
-    {
-        public Account(string name)
-        {
-            BalanceDue = 0.0;
-            Name = name;
-            Transactions = new List<Transaction>();
-
-        }
-        
-        public string Name { get; }
-        public double BalanceDue { get; set; }
-        public List<Transaction> Transactions { get; set; };
-
-        public void AddTransaction(Transaction transaction)
-        {
-            Transactions.Add(transaction);
-            if (transaction.To.Equals(Name))
+            _accounts = new Dictionary<string, Account>();
+            CSVReader();
+            foreach (var account in _accounts.Values)
             {
-                BalanceDue += transaction.Amount;
-            }
-
-            if (transaction.From.Equals(Name))
-            {
-                BalanceDue -= transaction.Amount;
+                Console.WriteLine($"Name: {account.Name} -- Pending Account Balance: {account.BalanceDue}");
             }
         }
 
+        static void CSVReader()
+        {
+            using (var reader = new StreamReader("./Transactions2014.csv"))
+            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+            {
+                var records = csv.GetRecords<Transaction>();
+                foreach (var transaction in records)
+                {
+                    AddTransaction(transaction);
+                }
+            }
+        }
 
+        static void AddTransaction(Transaction transaction)
+        {
+            var toName = transaction.To;
+            var fromName = transaction.From;
+            _accounts.TryAdd(toName, new Account(toName));
+            _accounts.TryAdd(fromName, new Account(fromName));
+            _accounts[toName].AddTransaction(transaction);
+            _accounts[fromName].AddTransaction(transaction);
+        }
     }
 }
