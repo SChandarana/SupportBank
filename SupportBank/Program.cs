@@ -1,46 +1,47 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using CsvHelper;
+using System.Linq;
 
 namespace SupportBank
 {
     class Program
     {
-        private static Dictionary<string,Account> _accounts;
-        
         static void Main(string[] args)
         {
-            _accounts = new Dictionary<string, Account>();
-            CSVReader();
-            foreach (var account in _accounts.Values)
+            var bs = new Base();
+            bs.ParseFileAndPopulateDictionary();
+            while (true)
             {
-                Console.WriteLine($"Name: {account.Name} -- Pending Account Balance: {account.BalanceDue}");
-            }
-        }
-
-        static void CSVReader()
-        {
-            using (var reader = new StreamReader("./Transactions2014.csv"))
-            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
-            {
-                var records = csv.GetRecords<Transaction>();
-                foreach (var transaction in records)
+                Console.WriteLine("Welcome to the Support Bank. Type 'List All' to see all balances or 'List [Account]' to see the transactions of a particular account. Type 'exit' to exit ");
+                try
                 {
-                    AddTransaction(transaction);
+                    var commands = Console.ReadLine().Split(" ");
+                    if (commands[0].ToLower() == "exit")
+                    {
+                        break;
+                    }
+
+                    if (commands[0].ToLower() == "list")
+                    {
+                        if (commands[1].ToLower() == "all")
+                        {
+                            bs.ListAll();
+                        }
+                        else
+                        {
+                            bs.ListAccount(String.Join(" ", commands.Skip(1)));
+                        }
+                    }
+
+                    else
+                    {
+                        throw new Exception();
+                    }
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("Input not recognized");
                 }
             }
-        }
-
-        static void AddTransaction(Transaction transaction)
-        {
-            var toName = transaction.To;
-            var fromName = transaction.From;
-            _accounts.TryAdd(toName, new Account(toName));
-            _accounts.TryAdd(fromName, new Account(fromName));
-            _accounts[toName].AddTransaction(transaction);
-            _accounts[fromName].AddTransaction(transaction);
         }
     }
 }

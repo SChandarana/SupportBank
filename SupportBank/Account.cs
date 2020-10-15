@@ -13,7 +13,6 @@ namespace SupportBank
             BalanceDue = 0;
             Name = name;
             Transactions = new List<Transaction>();
-
         }
 
         public void AddTransaction(Transaction transaction)
