@@ -6,9 +6,10 @@ using CsvHelper;
 
 namespace SupportBank
 {
-    class Base
+    class HelperFunctions
     {
-        public Dictionary<string,Account> Accounts { get; private set; } = new Dictionary<string,Account>();
+        public Dictionary<string, Account> Accounts { get; private set; } = new Dictionary<string, Account>();
+
         public void ListAll()
         {
             foreach (var account in Accounts.Values)
@@ -36,13 +37,11 @@ namespace SupportBank
         {
             using var reader = new StreamReader("./Transactions2014.csv");
             using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+            csv.Configuration.PrepareHeaderForMatch = (string header, int index) => header.ToLower();
+            var records = csv.GetRecords<Transaction>();
+            foreach (var transaction in records)
             {
-                csv.Configuration.PrepareHeaderForMatch = (string header, int index) => header.ToLower();
-                var records = csv.GetRecords<Transaction>();
-                foreach (var transaction in records)
-                {
-                    AddTransaction(transaction);
-                }
+                AddTransaction(transaction);
             }
         }
 

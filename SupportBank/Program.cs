@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.VisualBasic;
 
 namespace SupportBank
 {
@@ -7,37 +8,30 @@ namespace SupportBank
     {
         static void Main(string[] args)
         {
-            var bs = new Base();
-            bs.ParseFileAndPopulateDictionary();
+            var helper = new HelperFunctions();
+            helper.ParseFileAndPopulateDictionary();
             while (true)
             {
                 Console.WriteLine("Welcome to the Support Bank. Type 'List All' to see all balances or 'List [Account]' to see the transactions of a particular account. Type 'exit' to exit ");
-                try
+                var commands = Console.ReadLine().Split(" ");
+                if (commands[0].ToLower() == "exit")
                 {
-                    var commands = Console.ReadLine().Split(" ");
-                    if (commands[0].ToLower() == "exit")
-                    {
-                        break;
-                    }
+                    break;
+                }
 
-                    if (commands[0].ToLower() == "list")
+                if (commands[0].ToLower() == "list" && commands.Length > 1)
+                {
+                    if (commands[1].ToLower() == "all")
                     {
-                        if (commands[1].ToLower() == "all")
-                        {
-                            bs.ListAll();
-                        }
-                        else
-                        {
-                            bs.ListAccount(String.Join(" ", commands.Skip(1)));
-                        }
+                        helper.ListAll();
                     }
-
                     else
                     {
-                        throw new Exception();
+                        helper.ListAccount(String.Join(" ", commands.Skip(1)));
                     }
                 }
-                catch (Exception)
+
+                else
                 {
                     Console.WriteLine("Input not recognized");
                 }
