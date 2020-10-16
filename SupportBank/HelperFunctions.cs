@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using CsvHelper;
+using CsvHelper.TypeConversion;
+using NLog;
 
 namespace SupportBank
 {
     class HelperFunctions
     {
         public Dictionary<string, Account> Accounts { get; private set; } = new Dictionary<string, Account>();
-
+        private static readonly ILogger logger = LogManager.GetCurrentClassLogger();
+        
         public void ListAll()
         {
             foreach (var account in Accounts.Values)
@@ -29,19 +32,37 @@ namespace SupportBank
             }
             else
             {
-                Console.WriteLine($"Account with name {name} does not exist");
+                logger.Error($"Account with name {name} does not exist");
             }
         }
 
-        public void ParseFileAndPopulateDictionary()
+        public void ParseFileAndPopulateDictionary(string filename)
         {
-            using var reader = new StreamReader("./Transactions2014.csv");
+            logger.Info($"Reading file {filename}");
+            using var reader = new StreamReader($"./{filename}");
             using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
             csv.Configuration.PrepareHeaderForMatch = (string header, int index) => header.ToLower();
-            var records = csv.GetRecords<Transaction>();
-            foreach (var transaction in records)
+            var options = new TypeConverterOptions
             {
-                AddTransaction(transaction);
+                DateTimeStyle = DateTimeStyles.None,
+                Formats = new[] {"dd/MM/yyyy"},
+            };
+            csv.Configuration.TypeConverterOptionsCache.AddOptions<DateTime>(options);
+
+            logger.Info("File read successfully - Beginning to add transactions");
+            var records = csv.GetRecords<Transaction>();
+            try
+            {
+                foreach (var transaction in records)
+                {
+                    AddTransaction(transaction);
+                }
+                logger.Info("Transactions added with no issues");
+            }
+            catch (TypeConverterException e)
+            {
+                var message = $"Error on row {e.ReadingContext.Row} {e.Text} is not of correct data type in {filename}";
+                logger.Fatal(message);
             }
         }
 
