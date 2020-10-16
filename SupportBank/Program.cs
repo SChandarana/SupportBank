@@ -12,12 +12,7 @@ namespace SupportBank
 
         static void Main(string[] args)
         {
-            var config = new LoggingConfiguration();
-            var target = new FileTarget { FileName = @"C:\Work\Logs\SupportBank.log", Layout = @"${longdate} ${level} - ${logger}: ${message}" };
-            config.AddTarget("File Logger", target);
-            config.LoggingRules.Add(new LoggingRule("*", LogLevel.Debug, target));
-            LogManager.Configuration = config;
-            logger.Info("Program and Logger initiated");
+            LoggerSetup();
             var helper = new HelperFunctions();
             helper.ParseFileAndPopulateDictionary("Transactions2014.csv");
             helper.ParseFileAndPopulateDictionary("DodgyTransactions2015.csv");
@@ -49,10 +44,21 @@ namespace SupportBank
 
                 else
                 {
-                    logger.Error("User Input invalid command");
-                    Console.WriteLine("Input not recognized");
+                    logger.Error("Unable to read command");
                 }
             }
+        }
+
+        private static void LoggerSetup()
+        {
+            var config = new LoggingConfiguration();
+            var target = new FileTarget
+                {FileName = @"C:\Work\Logs\SupportBank.log", Layout = @"${longdate} ${level} - ${logger}: ${message}"};
+            config.AddTarget("File Logger", target);
+            config.LoggingRules.Add(new LoggingRule("*", LogLevel.Debug, target));
+            config.LoggingRules.Add(new LoggingRule("*",LogLevel.Error, new ConsoleTarget()));
+            LogManager.Configuration = config;
+            logger.Info("Program and Logger initiated");
         }
     }
 }

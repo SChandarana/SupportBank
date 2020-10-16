@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Globalization;
-using CsvHelper.Configuration;
 
 namespace SupportBank
 {

@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using CsvHelper;
 using CsvHelper.TypeConversion;
 using NLog;
-using NLog.Config;
 
 namespace SupportBank
 {
@@ -34,7 +32,7 @@ namespace SupportBank
             }
             else
             {
-                Console.WriteLine($"Account with name {name} does not exist");
+                logger.Error($"Account with name {name} does not exist");
             }
         }
 
@@ -50,6 +48,7 @@ namespace SupportBank
                 Formats = new[] {"dd/MM/yyyy"},
             };
             csv.Configuration.TypeConverterOptionsCache.AddOptions<DateTime>(options);
+
             logger.Info("File read successfully - Beginning to add transactions");
             var records = csv.GetRecords<Transaction>();
             try
@@ -64,7 +63,6 @@ namespace SupportBank
             {
                 var message = $"Error on row {e.ReadingContext.Row} {e.Text} is not of correct data type in {filename}";
                 logger.Fatal(message);
-                Console.WriteLine(message + "\nRest of file has been ignored, please fix errors and run again. Or continue using with part of data missing\n");
             }
         }
 
